@@ -1,231 +1,254 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Stall</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <title>Stall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-/>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:100%; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
+  <style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
 
-.stall-image {
-  width: 100%;
-  height: 100vh;
-  object-fit: cover;
-  object-position: center 80%;
-  display: block;
-}
-
-/* Footer */
-.footer-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: rgba(255,255,255,0.95);
-  border-top: 1px solid #ddd;
-  z-index: 20;
-  transition: transform 0.3s ease-in-out;
-}
-.footer-bar.collapsed { transform: translateY(90%); }
-
-.footer-toggle {
-  position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #2a4d7d;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 12px 12px 0 0;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.component-bar {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-}
-.component-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  width:200px;
-}
-.component-item i { font-size: 28px; margin-bottom: 6px; }
-
-/* Popup */
-#questionPopup {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 320px;
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-  display: none;
-  z-index: 50;
-}
-
-#questionPopup textarea {
-  width: 100%;
-  height: 80px;
-  padding: 8px;
-  resize: none;
-}
-
-.popup-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.popup-buttons button {
-  width: 48%;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#sendQuery {
-  background: #2a4d7d;
-  color: white;
-}
-
-#cancelQuery {
-  background: #ccc;
-}
-</style>
-</head>
-
-<body>
-
-<img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Single+Stall+View.png" class="stall-image">
-
-<!-- Popup -->
-<div id="questionPopup">
-  <textarea id="userQuery" placeholder="Ask your question..."></textarea>
-  
-  <div class="popup-buttons">
-    <button id="sendQuery">Send</button>
-    <button id="cancelQuery">Cancel</button>
-  </div>
-</div>
-
-<!-- Footer -->
-<div class="footer-bar collapsed" id="footerBar">
-  <div class="footer-toggle" id="footerToggle">▲</div>
-  <div class="component-bar">
-    <a href="#" class="component-item" title="Lobby">
-      <i class="fa-solid fa-house"></i>
-      Lobby
-    </a>
-    <a href="#" class="component-item" title="Auditorium">
-      <i class="fa-solid fa-person-chalkboard"></i>
-      Auditorium
-    </a>
-    <a href="#" class="component-item" title="Exhibition">
-      <i class="fa-solid fa-landmark"></i>
-      Exhibition
-    </a>
-    <a href="#" class="component-item" title="Ask a Question">
-      <i class="fa-regular fa-comment"></i>
-      Ask a Question
-    </a>
-    <a href="#" class="component-item" title="Logout">
-      <i class="fa-solid fa-arrow-right-from-bracket"></i>
-      Logout
-    </a>
-  </div>
-</div>
-
-<script>
-window.onload = function() {
-  const loginStatus = localStorage.getItem('_loginS');
-  if (loginStatus !== '_ltorguien') {
-    window.location.href = "login.html";
-    return;
+  .stall-image {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    object-position: center 80%;
+    display: block;
   }
-  setupFooter();
-};
 
-function setupFooter() {
-  const footer = document.getElementById('footerBar');
-  const toggle = document.getElementById('footerToggle');
+  /* Footer */
+  .footer-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: rgba(255,255,255,0.95);
+    border-top: 1px solid #ddd;
+    z-index: 20;
+    transition: transform 0.3s ease-in-out;
+  }
+  .footer-bar.collapsed { transform: translateY(90%); }
 
-  const askLink = document.querySelector('[title="Ask a Question"]');
-  const popup = document.getElementById('questionPopup');
-  const sendBtn = document.getElementById('sendQuery');
-  const cancelBtn = document.getElementById('cancelQuery');
+  .footer-toggle {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2a4d7d;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+  }
 
-  toggle.addEventListener('click', () => {
-    footer.classList.toggle('collapsed');
-    toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
-  });
+  .component-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+  }
 
-  // Show popup
-  askLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    popup.style.display = 'block';
-  });
+  /* Remove blue link style */
+  .component-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    width:200px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+  }
 
-  // Cancel button
-  cancelBtn.addEventListener('click', () => {
-    popup.style.display = 'none';
-    document.getElementById('userQuery').value = '';
-  });
+  .component-item:visited,
+  .component-item:active {
+    color: #333;
+  }
 
-  // Send API
-  sendBtn.addEventListener('click', () => {
-    const query = document.getElementById('userQuery').value;
+  .component-item:hover {
+    color: #2a4d7d;
+  }
 
-    if (!query.trim()) {
-      alert("Please enter a question");
+  .component-item i { font-size: 28px; margin-bottom: 6px; }
+
+  /* Popup */
+  #questionPopup {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 320px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    display: none;
+    z-index: 50;
+  }
+
+  #questionPopup textarea {
+    width: 100%;
+    height: 80px;
+    padding: 8px;
+    resize: none;
+  }
+
+  .popup-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .popup-buttons button {
+    width: 48%;
+    padding: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #sendQuery {
+    background: #2a4d7d;
+    color: white;
+  }
+
+  #cancelQuery {
+    background: #ccc;
+  }
+  </style>
+  </head>
+
+  <body>
+
+  <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Single+Stall+View.png" class="stall-image">
+
+  <!-- Popup -->
+  <div id="questionPopup">
+    <textarea id="userQuery" placeholder="Ask your question..."></textarea>
+    
+    <div class="popup-buttons">
+      <button id="sendQuery">Send</button>
+      <button id="cancelQuery">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-bar collapsed" id="footerBar">
+    <div class="footer-toggle" id="footerToggle">▲</div>
+    <div class="component-bar">
+      <a href="#" class="component-item" title="Lobby">
+        <i class="fa-solid fa-house"></i>
+        Lobby
+      </a>
+      <a href="#" class="component-item" title="Auditorium">
+        <i class="fa-solid fa-person-chalkboard"></i>
+        Auditorium
+      </a>
+      <a href="#" class="component-item" title="Exhibition">
+        <i class="fa-solid fa-landmark"></i>
+        Exhibition
+      </a>
+      <a href="#" class="component-item" title="Ask a Question">
+        <i class="fa-regular fa-comment"></i>
+        Ask a Question
+      </a>
+      <a href="#" class="component-item" title="Logout">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <script>
+  window.onload = function() {
+    const loginStatus = localStorage.getItem('_loginS');
+    if (loginStatus !== '_ltorguien') {
+      window.location.href = "login.html";
       return;
     }
+    setupFooter();
+  };
 
-    fetch("https://script.google.com/macros/s/AKfycbygYII0NUICTnv1NkKXqRYrZwQ9wKhzmGrC2g04XvFpEdgs8jy9Pgep1Mz5Ub7RE73p/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        user: "John",
-        query: query
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log(data);
-      alert("Question sent successfully!");
+  function setupFooter() {
+    const footer = document.getElementById('footerBar');
+    const toggle = document.getElementById('footerToggle');
+
+    const askLink = document.querySelector('[title="Ask a Question"]');
+    const popup = document.getElementById('questionPopup');
+    const sendBtn = document.getElementById('sendQuery');
+    const cancelBtn = document.getElementById('cancelQuery');
+
+    toggle.addEventListener('click', () => {
+      footer.classList.toggle('collapsed');
+      toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
+    });
+
+    // Show popup
+    askLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      popup.style.display = 'block';
+    });
+
+    // Cancel
+    cancelBtn.addEventListener('click', () => {
       popup.style.display = 'none';
       document.getElementById('userQuery').value = '';
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Error sending question");
     });
+
+sendBtn.addEventListener('click', () => {
+  const queryInput = document.getElementById('userQuery');
+  const query = queryInput.value;
+
+  if (!query.trim()) {
+    alert("Please enter a question");
+    return;
+  }
+
+  // 🚫 Prevent multiple clicks
+  sendBtn.disabled = true;
+  const originalText = sendBtn.textContent;
+  sendBtn.textContent = "Sending...";
+
+  fetch("https://adecon-backend.onrender.com/api/query/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: localStorage.getItem('userEmail'),
+      query: query
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Question sent successfully!");
+    popup.style.display = 'none';
+    queryInput.value = '';
+  })
+  .catch(() => {
+    alert("Error sending question");
+  })
+  .finally(() => {
+    // 🔄 Restore button
+    sendBtn.disabled = false;
+    sendBtn.textContent = originalText;
   });
+});
 
-  // Navigation
-  document.querySelector('[title="Lobby"]').onclick = () => window.location.href = 'home.html';
-  document.querySelector('[title="Auditorium"]').onclick = () => window.location.href = 'auditorium_recorded.html';
-  document.querySelector('[title="Exhibition"]').onclick = () => window.location.href = 'exhibition.html';
-  document.querySelector('[title="Logout"]').onclick = () => {
-    localStorage.removeItem('_loginS');
-    window.location.href = 'login.html';
-  };
-}
-</script>
+// Navigation
+    document.querySelector('[title="Lobby"]').onclick = () => window.location.href = 'home.html';
+    document.querySelector('[title="Auditorium"]').onclick = () => window.location.href = 'auditorium_recorded.html';
+    document.querySelector('[title="Exhibition"]').onclick = () => window.location.href = 'exhibition.html';
+    document.querySelector('[title="Logout"]').onclick = () => {
+      localStorage.removeItem('_loginS');
+      window.location.href = 'login.html';
+    };
+  }
+  </script>
 
-</body>
-</html>
+  </body>
+  </html>

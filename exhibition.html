@@ -5,193 +5,276 @@
 <title>Exhibition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Font Awesome CDN for icons -->
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 />
 
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; overflow: hidden; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; overflow: hidden; }
 
-  .container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
 
-  .container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+.container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-  .click-dot {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    background: red;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 10;
-    animation: pulse 1s infinite;
-    box-shadow: 0 0 10px rgba(255,0,0,0.7);
-  }
+/* 🔴 Red Dot */
+.click-dot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: red;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(255,0,0,0.7);
+}
 
-  @keyframes pulse {
-    0% { transform: scale(1) translate(-50%, -50%); }
-    50% { transform: scale(1.5) translate(-50%, -50%); }
-    100% { transform: scale(1) translate(-50%, -50%); }
-  }
+@keyframes pulse {
+  0% { transform: scale(1) translate(-50%, -50%); }
+  50% { transform: scale(1.5) translate(-50%, -50%); }
+  100% { transform: scale(1) translate(-50%, -50%); }
+}
 
-  .map-outline {
-    position: absolute;
-    border: 2px dashed blue;
-    pointer-events: none;
-    z-index: 5;
-  }
+/* Footer */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  border-top: 1px solid #ddd;
+  z-index: 20;
+  transition: transform 0.3s ease-in-out;
+}
+.footer-bar.collapsed { transform: translateY(90%); }
 
-  /* Collapsible Footer Styles */
-  .footer-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(255,255,255,0.95);
-    border-top: 1px solid #ddd;
-    z-index: 20;
-    transition: transform 0.3s ease-in-out;
-  }
-  .footer-bar.collapsed {
-    transform: translateY(90%);
-  }
+.footer-toggle {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2a4d7d;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+}
 
-  .footer-toggle {
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2a4d7d;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 12px 12px 0 0;
-    cursor: pointer;
-    font-weight: bold;
-    z-index: 21;
-  }
+.component-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+}
 
-  .component-bar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 0;
-  }
-  .component-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    color: black;
-    text-decoration: none;
-    width: 200px;
-    font-weight: 500;
-  }
-  .component-item:hover { color: #2a4d7d; }
-  .component-item i { font-size: 28px; margin-bottom: 6px; }
-  .exhibition { color: black; }
+.component-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+  width: 200px;
+}
+
+.component-item:hover { color: #2a4d7d; }
+.component-item i { font-size: 28px; margin-bottom: 6px; }
+
+/* Popup */
+#questionPopup {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  display: none;
+  z-index: 50;
+}
+
+#questionPopup textarea {
+  width: 100%;
+  height: 80px;
+  padding: 8px;
+  resize: none;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.popup-buttons button {
+  width: 48%;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#sendQuery {
+  background: #2a4d7d;
+  color: white;
+}
+
+#cancelQuery {
+  background: #ccc;
+}
 </style>
 </head>
+
 <body>
 
 <div class="container">
-  <img id="mainImage" src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Stall+View.png" usemap="#image-map" alt="Exhibition View">
-  
+  <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Stall+View.png" usemap="#image-map">
   <map name="image-map">
     <area href="stall.html" coords="10215,515,16452,6255" shape="rect">
   </map>
 </div>
 
-<!-- Collapsible Footer -->
+<!-- 💬 Popup -->
+<div id="questionPopup">
+  <textarea id="userQuery" placeholder="Ask your question..."></textarea>
+  <div class="popup-buttons">
+    <button id="sendQuery">Send</button>
+    <button id="cancelQuery">Cancel</button>
+  </div>
+</div>
+
+<!-- Footer -->
 <div class="footer-bar collapsed" id="footerBar">
   <div class="footer-toggle" id="footerToggle">▲</div>
   <div class="component-bar">
     <a href="#" class="component-item" title="Lobby">
-      <i class="fa-solid fa-house"></i>
-      Lobby
+      <i class="fa-solid fa-house"></i>Lobby
     </a>
     <a href="#" class="component-item" title="Auditorium">
-      <i class="fa-solid fa-person-chalkboard"></i>
-      Auditorium
+      <i class="fa-solid fa-person-chalkboard"></i>Auditorium
     </a>
-    <a href="#" class="component-item exhibition" title="Exhibition">
-      <i class="fa-solid fa-landmark"></i>
-      Exhibition
+    <a href="#" class="component-item" title="Exhibition">
+      <i class="fa-solid fa-landmark"></i>Exhibition
     </a>
     <a href="#" class="component-item" title="Ask a Question">
-      <i class="fa-regular fa-comment"></i>
-      Ask a Question
+      <i class="fa-regular fa-comment"></i>Ask a Question
     </a>
     <a href="#" class="component-item" title="Logout">
-      <i class="fa-solid fa-arrow-right-from-bracket"></i>
-      Logout
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>Logout
     </a>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/image-map-resizer/1.0.10/js/imageMapResizer.min.js"></script>
+
 <script>
-  // Login check
-  if (localStorage.getItem("_loginS") !== "_ltorguien") {
-    window.location.href = "login.html";
+// 🔐 Login check
+if (localStorage.getItem("_loginS") !== "_ltorguien") {
+  window.location.href = "login.html";
+}
+
+// 🔴 Restore red dot
+function addStaticDot() {
+  const container = document.querySelector(".container");
+  const dot = document.createElement("div");
+  dot.className = "click-dot";
+  dot.style.left = "775px";
+  dot.style.top = "150px";
+  container.appendChild(dot);
+}
+
+// 🚀 On Load
+window.onload = function() {
+  imageMapResize();
+  addStaticDot(); // ✅ red dot back
+  setupFooter();
+};
+
+// Footer + Popup + API
+function setupFooter() {
+  const footer = document.getElementById('footerBar');
+  const toggle = document.getElementById('footerToggle');
+
+  const askLink = document.querySelector('[title="Ask a Question"]');
+  const popup = document.getElementById('questionPopup');
+  const sendBtn = document.getElementById('sendQuery');
+  const cancelBtn = document.getElementById('cancelQuery');
+
+  toggle.addEventListener('click', () => {
+    footer.classList.toggle('collapsed');
+    toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
+  });
+
+  // Show popup
+  askLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    popup.style.display = 'block';
+  });
+
+  // Cancel
+  cancelBtn.addEventListener('click', () => {
+    popup.style.display = 'none';
+    document.getElementById('userQuery').value = '';
+  });
+
+sendBtn.addEventListener('click', () => {
+  const queryInput = document.getElementById('userQuery');
+  const query = queryInput.value;
+
+  if (!query.trim()) {
+    alert("Please enter a question");
+    return;
   }
 
-  // Make the clickable area scale with image
-  window.onload = function() {
-    imageMapResize();
-    addStaticDot();
-    setupFooter();
+  // 🚫 Prevent multiple clicks
+  sendBtn.disabled = true;
+  const originalText = sendBtn.textContent;
+  sendBtn.textContent = "Sending...";
+
+  fetch("https://adecon-backend.onrender.com/api/query/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user: localStorage.getItem('userEmail'),
+      query: query
+    })
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Question sent successfully!");
+    popup.style.display = 'none';
+    queryInput.value = '';
+  })
+  .catch(() => {
+    alert("Error sending question");
+  })
+  .finally(() => {
+    // 🔄 Restore button
+    sendBtn.disabled = false;
+    sendBtn.textContent = originalText;
+  });
+});
+
+  // Navigation
+  document.querySelector('[title="Lobby"]').onclick = () => window.location.href = 'home.html';
+  document.querySelector('[title="Auditorium"]').onclick = () => window.location.href = 'auditorium_recorded.html';
+  document.querySelector('[title="Exhibition"]').onclick = () => window.location.href = 'exhibition.html';
+  document.querySelector('[title="Logout"]').onclick = () => {
+    localStorage.removeItem('_loginS');
+    window.location.href = 'login.html';
   };
-
-  function addStaticDot() {
-    const container = document.querySelector(".container");
-    const dotX = 775; // pixels from left of container
-    const dotY = 150; // pixels from top of container
-
-    const dot = document.createElement("div");
-    dot.className = "click-dot";
-    dot.style.left = dotX + "px";
-    dot.style.top = dotY + "px";
-
-    container.appendChild(dot);
-  }
-
-  // Setup Footer
-  function setupFooter() {
-    const footer = document.getElementById('footerBar');
-    const toggle = document.getElementById('footerToggle');
-
-    toggle.addEventListener('click', () => {
-      footer.classList.toggle('collapsed');
-      toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
-    });
-
-    const lobbyLink = document.querySelector('.component-item[title="Lobby"]');
-    const auditoriumLink = document.querySelector('.component-item[title="Auditorium"]');
-    const exhibitionLink = document.querySelector('.component-item[title="Exhibition"]');
-    const logoutLink = document.querySelector('.component-item[title="Logout"]');
-
-    lobbyLink.addEventListener('click', () => { window.location.href = 'home.html'; });
-    auditoriumLink.addEventListener('click', () => { window.location.href = 'auditorium_recorded.html'; });
-    exhibitionLink.addEventListener('click', () => { window.location.href = 'exhibition.html'; });
-    logoutLink.addEventListener('click', () => {
-      localStorage.removeItem('_loginS');
-      window.location.href = 'login.html';
-    });
-  }
+}
 </script>
 
 </body>
