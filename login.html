@@ -103,7 +103,6 @@ window.onload = function () {
         window.location.href = "home.html";
     }
 };
-
 async function login() {
     const email = document.getElementById('email').value.trim();
     const errorMsg = document.getElementById('errorMsg');
@@ -117,34 +116,64 @@ async function login() {
 
     errorMsg.style.display = 'none';
 
+    let userEmail = email;
+    let isAuthenticated = false;
+
     try {
-        // 🔥 Payment Check API
-        const response = await fetch("https://sapi.onference.in/UsersApi/checkPaymentStatus", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email: email })
-        });
+        // 🔥 STEP 1: NEW API (Your backend)
+        try {
+            const res1 = await fetch("https://adecon-backend.onrender.com/api/payment/status", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email })
+            });
 
-        const data = await response.json();
-        console.log("API Response:", data);
+            const data1 = await res1.json();
+            console.log("New API Response:", data1);
 
-        // ✅ If payment is done
-        if (data.paymentStatus && data.paymentStatus !== "payment not done") {
+            if (data1.paymentStatus && data1.paymentStatus !== "payment not done") {
+                isAuthenticated = true;
+            }
+        } catch (err) {
+            console.warn("New API failed, trying fallback...");
+        }
 
-            let userEmail = email;
+        // 🔥 STEP 2: FALLBACK API (old one)
+        if (!isAuthenticated) {
+            try {
+                const res2 = await fetch("https://sapi.onference.in/UsersApi/checkPaymentStatus", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data2 = await res2.json();
+                console.log("Fallback API Response:", data2);
+
+                if (data2.paymentStatus && data2.paymentStatus !== "payment not done") {
+                    isAuthenticated = true;
+
+                    if (data2.userData && data2.userData.length > 0) {
+                        userEmail = data2.userData[0].email;
+                    }
+                }
+            } catch (err) {
+                console.warn("Fallback API also failed");
+            }
+        }
+
+        // ✅ STEP 3: FINAL DECISION
+        if (isAuthenticated) {
 
             // Save login flag
             localStorage.setItem('_loginS', '_ltorguien');
-
-            // Save email
-            if (data.userData && data.userData.length > 0) {
-                userEmail = data.userData[0].email;
-            }
             localStorage.setItem('userEmail', userEmail);
 
-            // ✅ 🔥 CALL YOUR BACKEND (LOGIN TRACKING)
+            // 🔥 Activity tracking
             try {
                 await fetch("https://adecon-backend.onrender.com/api/user/activity", {
                     method: "POST",
@@ -160,11 +189,11 @@ async function login() {
                 console.error("Tracking failed:", err);
             }
 
-            // Redirect
+            // Redirect to home
             window.location.href = "home.html";
 
         } else {
-            // ❌ Payment not done
+            // ❌ BOTH FAILED → redirect
             window.location.href = "https://adecon2026-registration.onrender.com/";
         }
 
