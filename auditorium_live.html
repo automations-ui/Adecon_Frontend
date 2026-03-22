@@ -229,7 +229,13 @@ function setupVideo() {
   const video = document.getElementById('videoPlayer');
   const area = document.getElementById('videoArea');
   const img = document.querySelector('.background');
-
+ document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    video.pause();
+  } else {
+    video.play();
+  }
+});
   function scaleCoords() {
     const coords = area.coords.split(',').map(Number);
     const scaleX = img.width / img.naturalWidth;
@@ -252,10 +258,21 @@ function setupVideo() {
 
   requestIdleCallback(() => {
     if (Hls.isSupported()) {
-      const hls = new Hls();
+    const hls = new Hls({
+  liveSyncDurationCount: 1,     // stay very close to live edge
+  liveMaxLatencyDurationCount: 2,
+  maxBufferLength: 5,           // reduce buffer (default ~30s)
+  maxMaxBufferLength: 10,
+  startPosition: -1,            // start from live edge
+  backBufferLength: 0,          // DO NOT keep old segments
+});
       hls.loadSource(src);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+const level = Math.max(0, hls.levels.length - 2);
+hls.currentLevel = level;
+  video.play();
+});
     } else {
       video.src = src;
       video.play();
@@ -315,6 +332,7 @@ function setupFooter() {
     localStorage.removeItem('_loginS');
     location.href='login.html';
   };
+ 
 }
 </script>
 
