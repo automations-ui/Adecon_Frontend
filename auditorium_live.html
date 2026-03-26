@@ -7,58 +7,92 @@
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-/>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:100%; height:100%; overflow:hidden; font-family: Arial, sans-serif; }
-
-.container { width:100%; height:100vh; position: relative; }
-
-/* ✅ Background optimized */
-.container img.background {
-  width: 100%;
-  height: 100vh;
-  object-fit: cover;
-  object-position: center 80%;
-}
-
-/* ✅ Video */
-#videoPlayer {
-  position:absolute;
-  z-index:2;
-  border:2px solid #fff;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
+html, body {
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family: Arial, sans-serif;
   background:black;
-  will-change: transform;
 }
 
-/* ✅ Loader */
+/* 🔐 Loader */
 #loader {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: white;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position:fixed;
+  inset:0;
+  background:#0f172a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #ddd;
-  border-top: 5px solid #2a4d7d;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  width:50px;
+  height:50px;
+  border:5px solid rgba(255,255,255,0.2);
+  border-top:5px solid #38bdf8;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 🎥 FULLSCREEN VIDEO */
+.video-container {
+  width:100vw;
+  height:100vh;
+  position:relative;
+}
+
+#videoPlayer {
+  width:100%;
+  height:100%;
+  object-fit: cover; /* 🔥 fills full screen */
+  background:black;
+}
+
+/* 📄 Modal */
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
+.modal-content {
+  width:85%;
+  height:85%;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+  position:relative;
+}
+
+.modal-content iframe {
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.close-btn {
+  position:absolute;
+  top:10px;
+  right:15px;
+  background:red;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  cursor:pointer;
 }
 
 /* Footer */
@@ -75,9 +109,9 @@ html, body { width:100%; height:100%; overflow:hidden; font-family: Arial, sans-
 
 .footer-toggle {
   position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: -31px;
+  left: 51%;
+  transform: translateX(-51%);
   background: #2a4d7d;
   color: white;
   padding: 5px 12px;
@@ -96,239 +130,183 @@ html, body { width:100%; height:100%; overflow:hidden; font-family: Arial, sans-
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  text-decoration: none;
   color: #333;
-  width: 200px;
 }
-.component-item:hover { color: #2a4d7d; }
-.component-item i { font-size: 28px; margin-bottom: 6px; }
-
-/* Popup */
-#questionPopup {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 320px;
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-  display: none;
-  z-index: 50;
-}
-
-#questionPopup textarea {
-  width: 100%;
-  height: 80px;
-  padding: 8px;
-}
-
-.popup-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.popup-buttons button {
-  width: 48%;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#sendQuery { background:#2a4d7d; color:white; }
-#cancelQuery { background:#ccc; }
+.component-item i { font-size: 26px; margin-bottom: 5px; }
 </style>
 </head>
 
 <body>
 
-<!-- ✅ Loader -->
+<!-- 🔐 Loader -->
 <div id="loader">
   <div class="spinner"></div>
 </div>
 
-<div class="container">
-  <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Auditorium+Design.png"
-       usemap="#image-map"
-       class="background"
-       loading="lazy"
-       decoding="async">
-
-  <map name="image-map">
-    <area coords="6378,3444,20171,12321" shape="rect" id="videoArea">
-  </map>
-
-  <!-- ✅ Video lazy -->
-  <video id="videoPlayer" controls muted preload="none"></video>
+<!-- 🎥 Video -->
+<div class="video-container">
+  <video id="videoPlayer" controls muted autoplay playsinline></video>
 </div>
 
-<!-- Popup -->
-<div id="questionPopup">
-  <textarea id="userQuery" placeholder="Ask your question..."></textarea>
-  <div class="popup-buttons">
-    <button id="sendQuery">Send</button>
-    <button id="cancelQuery">Cancel</button>
+<!-- 📄 Modal (Google Form) -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">✖</button>
+    <iframe id="modalFrame"></iframe>
   </div>
 </div>
 
 <!-- Footer -->
 <div class="footer-bar collapsed" id="footerBar">
-  <div class="footer-toggle" id="footerToggle">▲</div>
+  <div class="footer-toggle" id="footerToggle">Menu ▲</div>
+
   <div class="component-bar">
-    <a href="#" class="component-item" title="Lobby">
-      <i class="fa-solid fa-house"></i> Lobby
-    </a>
-    <a href="#" class="component-item" title="Auditorium">
-      <i class="fa-solid fa-person-chalkboard"></i> Auditorium
-    </a>
-    <a href="#" class="component-item" title="Exhibition">
-      <i class="fa-solid fa-landmark"></i> Visit Exhibition 
-    </a>
-    <a class="component-item" title="Ask a Question">
-      <i class="fa-regular fa-comment"></i> Ask a Question
-    </a>
-    <a href="#" class="component-item" title="Logout">
-      <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-    </a>
+    <div class="component-item" id="goLobby">
+      <i class="fa-solid fa-house"></i>Lobby
+    </div>
+
+    <div class="component-item" id="goAud">
+      <i class="fa-solid fa-person-chalkboard"></i>Auditorium
+    </div>
+
+    <div class="component-item" id="goEx">
+      <i class="fa-solid fa-landmark"></i>Exhibition
+    </div>
+
+    <div class="component-item" id="askBtn">
+      <i class="fa-regular fa-comment"></i>Ask
+    </div>
+
+    <div class="component-item" id="logout">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>Logout
+    </div>
   </div>
 </div>
 
 <script>
-// Footer first
-document.addEventListener('DOMContentLoaded', setupFooter);
 
-// Full load
-window.addEventListener('load', () => {
-  document.getElementById('loader').style.display = 'none';
+/* 🔐 AUTH */
+async function checkAuth() {
+  try {
+    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+      credentials: "include"
+    });
 
-  trackView();
+    const data = await res.json();
 
-  // ✅ Delay video init
-  setTimeout(setupVideo, 300);
-});
-
-function trackView() {
-  const user = localStorage.getItem('userEmail');
-  if (!user) return;
-
-  fetch("https://adecon-backend.onrender.com/api/user/activity", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ user, viewTime: true })
-  }).catch(() => {});
+    if (data.message === "User authenticated") {
+      document.getElementById("loader").style.display = "none";
+      return true;
+    } else {
+      window.location.href = "login.html";
+    }
+  } catch {
+    window.location.href = "login.html";
+  }
 }
 
+/* 🎥 VIDEO SETUP */
 function setupVideo() {
   const video = document.getElementById('videoPlayer');
-  const area = document.getElementById('videoArea');
-  const img = document.querySelector('.background');
- document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    video.pause();
+  const src = "https://stream.mux.com/6uwusJNZiVwtBChnLfrmOnUzXEft4AjBT5GumyCu8U8.m3u8";
+
+  if (Hls.isSupported()) {
+    const hls = new Hls({
+      liveSyncDurationCount: 1,
+      liveMaxLatencyDurationCount: 2,
+      maxBufferLength: 5,
+      backBufferLength: 0
+    });
+
+    hls.loadSource(src);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+    });
   } else {
+    video.src = src;
     video.play();
   }
-});
-  function scaleCoords() {
-    const coords = area.coords.split(',').map(Number);
-    const scaleX = img.width / img.naturalWidth;
-    const scaleY = img.height / img.naturalHeight;
-    return coords.map((c, i) => i % 2 === 0 ? c * scaleX : c * scaleY);
-  }
 
-  function positionVideo() {
-    const [x1,y1,x2,y2] = scaleCoords();
-    video.style.left = x1+'px';
-    video.style.top = y1+'px';
-    video.style.width = (x2-x1)+'px';
-    video.style.height = (y2-y1)+'px';
-  }
-
-  positionVideo();
-  window.addEventListener('resize', positionVideo);
-
-  const src = 'https://stream.mux.com/6uwusJNZiVwtBChnLfrmOnUzXEft4AjBT5GumyCu8U8.m3u8';
-
-  requestIdleCallback(() => {
-    if (Hls.isSupported()) {
-    const hls = new Hls({
-  liveSyncDurationCount: 1,     // stay very close to live edge
-  liveMaxLatencyDurationCount: 2,
-  maxBufferLength: 5,           // reduce buffer (default ~30s)
-  maxMaxBufferLength: 10,
-  startPosition: -1,            // start from live edge
-  backBufferLength: 0,          // DO NOT keep old segments
-});
-      hls.loadSource(src);
-      hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-const level = Math.max(0, hls.levels.length - 2);
-hls.currentLevel = level;
-  video.play();
-});
-    } else {
-      video.src = src;
-      video.play();
-    }
+  // pause when tab inactive
+  document.addEventListener("visibilitychange", () => {
+    document.hidden ? video.pause() : video.play();
   });
 }
 
-function setupFooter() {
-  const footer = document.getElementById('footerBar');
-  const toggle = document.getElementById('footerToggle');
+/* 📄 Modal */
+function openModal(url) {
+  document.getElementById("modalFrame").src = url;
+  document.getElementById("modal").style.display = "flex";
+}
 
-  const popup = document.getElementById('questionPopup');
-  const askLink = document.querySelector('[title="Ask a Question"]');
-  const sendBtn = document.getElementById('sendQuery');
-  const cancelBtn = document.getElementById('cancelQuery');
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modalFrame").src = "";
+}
+
+/* 🧠 Google Form Prefill */
+function buildPrefilledFormURL() {
+  const base = "https://docs.google.com/forms/d/e/1FAIpQLSfe6pbQgIeUB9IuiiJ-vq6xpTIcpMSxiOIyhk8MI-2H8RbjYw/viewform";
+
+  const params = new URLSearchParams({
+    "entry.543970567": localStorage.getItem("fullname") || "",
+    "entry.385469749": "",
+    "entry.57364819": localStorage.getItem("mobileno") || "",
+    "entry.880130637": localStorage.getItem("email") || "",
+    "entry.342698872": localStorage.getItem("city") || "",
+    "entry.745321921": localStorage.getItem("state") || "",
+    "entry.1903990537": localStorage.getItem("country") || ""
+  });
+
+  return `${base}?${params.toString()}`;
+}
+
+/* Footer */
+function setupFooter() {
+  const footer = document.getElementById("footerBar");
+  const toggle = document.getElementById("footerToggle");
 
   toggle.onclick = () => {
-    footer.classList.toggle('collapsed');
-    toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
+    footer.classList.toggle("collapsed");
+    toggle.textContent = footer.classList.contains("collapsed") ? "Menu ▲" : "Menu ▼";
   };
 
-  askLink.onclick = () => popup.style.display = 'block';
-  cancelBtn.onclick = () => {
-    popup.style.display = 'none';
-    userQuery.value = '';
+  document.getElementById("askBtn").onclick = () => {
+    openModal(buildPrefilledFormURL());
   };
 
-  sendBtn.onclick = () => {
-    const query = userQuery.value;
-    if (!query.trim()) return alert("Enter question");
+  document.getElementById("goLobby").onclick = () => location.href = "home.html";
+  document.getElementById("goAud").onclick = () => location.href = "auditorium_live.html";
+  document.getElementById("goEx").onclick = () => location.href = "exhibition.html";
 
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Sending...";
-
-    fetch("https://adecon-backend.onrender.com/api/query/add", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        user: localStorage.getItem('userEmail'),
-        query
-      })
-    })
-    .then(()=>alert("Sent!"))
-    .catch(()=>alert("Error"))
-    .finally(()=>{
-      sendBtn.disabled=false;
-      sendBtn.textContent="Send";
-      popup.style.display='none';
-      userQuery.value='';
-    });
+  document.getElementById("logout").onclick = async () => {
+    try {
+      await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch {}
+    localStorage.clear();
+    location.href = "login.html";
   };
-
-  document.querySelector('[title="Lobby"]').onclick=()=>location.href='home.html';
-  document.querySelector('[title="Auditorium"]').onclick=()=>location.href='auditorium_live.html';
-  document.querySelector('[title="Exhibition"]').onclick=()=>location.href='exhibition.html';
-  document.querySelector('[title="Logout"]').onclick=()=>{
-    localStorage.removeItem('_loginS');
-    location.href='login.html';
-  };
- 
 }
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", async () => {
+  const ok = await checkAuth();
+  if (!ok) return;
+
+  setupFooter();
+  setupVideo();
+});
+
+/* ESC close */
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+
 </script>
 
 </body>

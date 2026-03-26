@@ -119,16 +119,45 @@ body { overflow:hidden; font-family: Arial; }
 
 <script>
 
-/* AUTH */
 async function checkAuth(){
   try{
-    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status",{credentials:"include"});
+    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status",{
+      credentials:"include"
+    });
+
     const d = await res.json();
+
     if(d.message==="User authenticated"){
       document.getElementById("authLoader").style.display="none";
-    } else location.href="login.html";
-  }catch{ location.href="login.html"; }
+
+      // ✅ TRACK STALL VISIT
+      trackStallVisit();
+
+    } else {
+      location.href="login.html";
+    }
+
+  }catch{
+    location.href="login.html";
+  }
 }
+
+/* 📊 Track Stall Visit */
+function trackStallVisit() {
+  fetch("https://adecon-backend-8y4v.onrender.com/api/user/activity", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      stall: "{{STALL}}" 
+    })
+  }).catch(() => {
+   
+  });
+}
+
 
 /* Modal */
 function openModal(url){
