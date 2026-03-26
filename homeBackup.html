@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { overflow:hidden; font-family: Arial, sans-serif; }
+
+/* 🔐 Loader */
+#authLoader {
+  position:fixed;
+  inset:0;
+  background:#0f172a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  color:white;
+}
+
+.spinner {
+  width:50px;
+  height:50px;
+  border:5px solid rgba(255,255,255,0.2);
+  border-top:5px solid #38bdf8;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Main */
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.container img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* Red dots */
+.click-dot {
+  position:absolute;
+  width:16px;
+  height:16px;
+  background:red;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  z-index:10;
+}
+
+/* Modal */
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
+.modal-content {
+  width:85%;
+  height:85%;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+  position:relative;
+}
+
+.modal-content iframe {
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.close-btn {
+  position:absolute;
+  top:10px;
+  right:15px;
+  background:red;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🔐 Loader -->
+<div id="authLoader">
+  <div style="text-align:center;">
+    <div class="spinner"></div>
+    <p style="margin-top:10px; opacity:0.8;">Authenticating...</p>
+  </div>
+</div>
+
+<!-- 🌐 Content -->
+<div class="container">
+  <img
+    src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Lobby+design+with+agenda.png"
+    usemap="#image-map"
+  />
+
+  <map name="image-map">
+    <area href="exhibition.html" coords="2000,6599,7037,9495" shape="rect">
+    <area href="auditorium_live.html" coords="10050,5468,16640,9213" shape="rect">
+    <area href="exhibition.html" coords="18923,6481,24643,9472" shape="rect">
+
+    <area class="agenda-area"
+      data-url="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/USERGUIDE+ADECON.pdf"
+      coords="7555,11497,9791,13310" shape="rect">
+
+    <area class="agenda-area"
+      data-url="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/USERGUIDE+ADECON.pdf"
+      coords="16970,11356,18994,13098" shape="rect">
+
+    <area id="askArea" coords="10238,9660,16264,12604" shape="rect">
+  </map>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">✖</button>
+    <iframe id="modalFrame"></iframe>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/image-map-resizer/1.0.10/js/imageMapResizer.min.js"></script>
+
+<script>
+
+/* 🧪 TEST MODE */
+function isTestMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("value") === "test";
+}
+
+/* 🔐 AUTH */
+async function checkAuth() {
+
+  if (isTestMode()) {
+    console.warn("⚠️ Test mode enabled → bypassing auth");
+    hideLoader();
+    return true;
+  }
+
+  const minDelay = new Promise(res => setTimeout(res, 1500));
+
+  try {
+    const fetchPromise = fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+      method: "GET",
+      credentials: "include"
+    }).then(res => res.json());
+
+    const [data] = await Promise.all([fetchPromise, minDelay]);
+
+    if (data.message === "User authenticated") {
+      hideLoader();
+      return true;
+    } else {
+      redirectToLogin();
+    }
+
+  } catch (err) {
+    redirectToLogin();
+  }
+}
+
+/* Helpers */
+function hideLoader() {
+  document.getElementById("authLoader").style.display = "none";
+}
+
+function redirectToLogin() {
+  window.location.href = "login.html";
+}
+
+/* 📄 Modal */
+function openModal(url) {
+  const modal = document.getElementById("modal");
+  const frame = document.getElementById("modalFrame");
+
+  frame.src = url;
+  modal.style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modalFrame").src = "";
+}
+
+/* Agenda */
+function attachAgendaHandlers() {
+  document.querySelectorAll("area.agenda-area").forEach(area => {
+    area.addEventListener("click", e => {
+      e.preventDefault();
+      openModal(area.dataset.url);
+    });
+  });
+}
+
+/* Ask Query */
+function setupAskFeature() {
+  const askArea = document.getElementById("askArea");
+
+  askArea.addEventListener("click", e => {
+    e.preventDefault();
+    openModal("https://forms.gle/N43Ma86NZwu17cAb7");
+  });
+}
+
+/* Dots */
+function addStaticDots() {
+  const container = document.querySelector(".container");
+
+  const dots = [
+    { x: 400, y: 335 },
+    { x: 750, y: 350 },
+    { x: 1400, y: 335 },
+    { x: 500, y: 680 },
+    { x: 1025, y: 675 },
+    { x: 760, y: 600 }
+  ];
+
+  dots.forEach(pos => {
+    const d = document.createElement("div");
+    d.className = "click-dot";
+    d.style.left = pos.x + "px";
+    d.style.top = pos.y + "px";
+    container.appendChild(d);
+  });
+}
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", async () => {
+  const isAuth = await checkAuth();
+  if (!isAuth) return;
+
+  attachAgendaHandlers();
+  setupAskFeature();
+  addStaticDots();
+});
+
+window.onload = function() {
+  imageMapResize();
+};
+
+</script>
+
+</body>
+</html>

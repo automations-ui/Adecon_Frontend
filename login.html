@@ -2,213 +2,231 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Login</title>
+<title>Adecon 2026 - Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
 
-    body {
-        display: flex;
-        height: 100vh;
-    }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    background: #f4f7fb;
+}
+
+/* HERO */
+.hero {
+    width: 70%;
+    height: 100vh;
+    overflow: hidden;   /* 🔥 crops extra image */
+}
+
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center -10px; /* 🔥 shift image down by 10px */
+}
+
+/* LOGIN */
+.login-container {
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    width: 300px;
+    padding: 30px 20px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+/* INPUT */
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f9fbfd;
+}
+
+input:focus {
+    border-color: #0072ff;
+    background: #fff;
+    outline: none;
+}
+
+/* BUTTONS */
+button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.login-btn {
+    background: #0072ff;
+    color: #fff;
+    border: none;
+}
+
+.register-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+}
+
+/* SPINNER */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ERROR */
+.error {
+    color: red;
+    font-size: 12px;
+    display: none;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+    body { flex-direction: column; }
 
     .hero {
-        flex: 2;
-        background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e') no-repeat center center/cover;
+        width: 100%;
+        height: 200px;
+    }
+
+    .hero img {
+        height: 100%;
     }
 
     .login-container {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #f5f5f5;
-    }
-
-    .login-box {
-        background: white;
-        padding: 40px;
-        width: 300px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-
-    input {
         width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
     }
-
-    button {
-        width: 100%;
-        padding: 10px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    button:hover {
-        background: #0056b3;
-    }
-
-    .register-btn {
-        background: #28a745;
-    }
-
-    .register-btn:hover {
-        background: #1e7e34;
-    }
-
-    .error {
-        color: red;
-        font-size: 14px;
-        display: none;
-    }
+}
 </style>
 </head>
 
 <body>
 
-<div class="hero"></div>
+<div class="hero">
+    <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Login+Page+Adecon+Banner%402x.png">
+</div>
 
 <div class="login-container">
     <div class="login-box">
-        <h2>Login</h2>
-        <input type="email" id="email" placeholder="Enter your email" />
-        <div class="error" id="errorMsg"></div>
-        <button onclick="login()">Login</button>
 
-        <button class="register-btn" onclick="register()">Register</button>
+        <input type="email" id="email" placeholder="Enter email" />
+        <div class="error" id="errorMsg"></div>
+
+        <button class="login-btn" id="loginBtn" onclick="login()">
+            <span id="btnText">Login</span>
+            <span class="spinner" id="btnLoader"></span>
+        </button>
+
+        <button class="register-btn" onclick="location.href='https://adecon2026-registration.onrender.com/'">
+            Register
+        </button>
+
     </div>
 </div>
 
 <script>
+// Auto redirect if logged in
+window.onload = async () => {
+    try {
+        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+            credentials: "include"
+        });
 
-// 🔁 Auto-login check
-window.onload = function () {
-    const loginStatus = localStorage.getItem('_loginS');
-    if (loginStatus === '_ltorguien') {
-        window.location.href = "home.html";
-    }
+        const data = await res.json();
+        if (data.message === "User authenticated") {
+            location.href = "home.html";
+        }
+    } catch {}
 };
-async function login() {
-    const email = document.getElementById('email').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
 
-    // ✅ Validation
-    if (!email || !email.includes('@')) {
+// Enter key support
+email.addEventListener("keypress", e => {
+    if (e.key === "Enter") login();
+});
+
+async function login() {
+    const emailVal = email.value.trim();
+
+    if (!emailVal.includes('@')) {
         errorMsg.style.display = 'block';
-        errorMsg.innerText = "Please enter a valid email";
+        errorMsg.innerText = "Enter valid email";
         return;
     }
 
-    errorMsg.style.display = 'none';
-
-    let userEmail = email;
-    let isAuthenticated = false;
+    toggleLoading(true);
 
     try {
-        // 🔥 STEP 1: NEW API (Your backend)
-        try {
-            const res1 = await fetch("https://adecon-backend.onrender.com/api/payment/status", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ email })
-            });
+        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/user/status", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email: emailVal }),
+            credentials: "include"
+        });
 
-            const data1 = await res1.json();
-            console.log("New API Response:", data1);
+        const data = await res.json();
 
-            if (data1.paymentStatus && data1.paymentStatus !== "payment not done") {
-                isAuthenticated = true;
-            }
-        } catch (err) {
-            console.warn("New API failed, trying fallback...");
-        }
+        if (data?.message?.email) {
+            const u = data.message;
 
-        // 🔥 STEP 2: FALLBACK API (old one)
-        if (!isAuthenticated) {
-            try {
-                const res2 = await fetch("https://sapi.onference.in/UsersApi/checkPaymentStatus", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ email })
-                });
+            localStorage.setItem("email", u.email || "");
+            localStorage.setItem("fullname", u.fullname || "");
+            localStorage.setItem("mobileno", u.mobileno || "");
+            localStorage.setItem("city", u.city || "");
+            localStorage.setItem("state", u.state || "");
+            localStorage.setItem("country", u.country || "");
 
-                const data2 = await res2.json();
-                console.log("Fallback API Response:", data2);
-
-                if (data2.paymentStatus && data2.paymentStatus !== "payment not done") {
-                    isAuthenticated = true;
-
-                    if (data2.userData && data2.userData.length > 0) {
-                        userEmail = data2.userData[0].email;
-                    }
-                }
-            } catch (err) {
-                console.warn("Fallback API also failed");
-            }
-        }
-
-        // ✅ STEP 3: FINAL DECISION
-        if (isAuthenticated) {
-
-            // Save login flag
-            localStorage.setItem('_loginS', '_ltorguien');
-            localStorage.setItem('userEmail', userEmail);
-
-            // 🔥 Activity tracking
-            try {
-                await fetch("https://adecon-backend.onrender.com/api/user/activity", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        user: userEmail,
-                        loginTime: true
-                    })
-                });
-            } catch (err) {
-                console.error("Tracking failed:", err);
-            }
-
-            // Redirect to home
-            window.location.href = "home.html";
-
+            location.href = "home.html";
         } else {
-            // ❌ BOTH FAILED → redirect
-            window.location.href = "https://adecon2026-registration.onrender.com/";
+            errorMsg.style.display = 'block';
+            errorMsg.innerText = "User not found";
         }
 
-    } catch (error) {
-        console.error("Error:", error);
+    } catch {
         errorMsg.style.display = 'block';
-        errorMsg.innerText = "Unable to verify payment. Try again.";
+        errorMsg.innerText = "Server error";
     }
+
+    toggleLoading(false);
 }
 
-// ✅ Register redirect
-function register() {
-    window.location.href = "https://adecon2026-registration.onrender.com/";
+function toggleLoading(state) {
+    loginBtn.disabled = state;
+    btnText.style.opacity = state ? "0.7" : "1";
+    btnLoader.style.display = state ? "inline-block" : "none";
 }
-
 </script>
 
 </body>

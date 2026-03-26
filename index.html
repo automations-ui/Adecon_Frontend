@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/jpeg" href="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/dark.jpg">
     <meta charset="UTF-8">
-    <title>Redirect Check</title>
-    <script>
-        window.onload = function () {
-            // Get value from localStorage
-            const loginStatus = localStorage.getItem('_loginS');
+    <title>Adecon 2026</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #ffffff;
+        }
 
-            // Check if value matches required string
-            if (loginStatus === '_ltorguien') {
-                // Valid login → go to home
-                window.location.href = "home.html";
-            } else {
-                // Invalid or missing → go to login
-                window.location.href = "login.html";
-            }
-        };
-    </script>
+        .loader-container {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+    </style>
+
+  <script>
+window.onload = async function () {
+
+    try {
+       const response = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+        const data = await response.json();
+
+        if (data.message === "User authenticated") {
+            window.location.href = "home.html";
+        } else {
+            window.location.href = "login.html";
+        }
+
+    } catch (error) {
+        window.location.href = "login.html";
+    }
+};
+</script>
 </head>
+
 <body>
+    <div class="loader-container">
+        <div class="spinner"></div>
+    </div>
 </body>
 </html>

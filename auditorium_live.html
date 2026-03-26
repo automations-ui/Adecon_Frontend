@@ -203,11 +203,6 @@ document.addEventListener('DOMContentLoaded', setupFooter);
 window.addEventListener('load', () => {
   document.getElementById('loader').style.display = 'none';
 
-  if (localStorage.getItem('_loginS') !== '_ltorguien') {
-    window.location.href = "login.html";
-    return;
-  }
-
   trackView();
 
   // ✅ Delay video init
@@ -254,7 +249,7 @@ function setupVideo() {
   positionVideo();
   window.addEventListener('resize', positionVideo);
 
-  const src = 'https://stream.mux.com/trdqex3gHkir1lsSLNHHz84ipRsFxbOeO6RLbyf4aeo.m3u8';
+  const src = 'https://stream.mux.com/6uwusJNZiVwtBChnLfrmOnUzXEft4AjBT5GumyCu8U8.m3u8';
 
   requestIdleCallback(() => {
     if (Hls.isSupported()) {
