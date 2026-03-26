@@ -132,12 +132,54 @@ html, body {
   cursor: pointer;
   color: #333;
 }
+/* 🔄 Rotate Screen */
+#rotateScreen {
+  position: fixed;
+  inset: 0;
+  background: #020617;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  text-align: center;
+}
+
+.rotate-content i {
+  font-size: 60px;
+  margin-bottom: 20px;
+  color: #38bdf8;
+  animation: rotateIcon 2s infinite linear;
+}
+
+@keyframes rotateIcon {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.rotate-content h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.rotate-content p {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
 .component-item i { font-size: 26px; margin-bottom: 5px; }
 </style>
 </head>
 
 <body>
-
+<!-- 🔄 Rotate Screen Overlay -->
+<div id="rotateScreen">
+  <div class="rotate-content">
+    <i class="fa-solid fa-rotate"></i>
+    <h2>Rotate Your Device</h2>
+    <p>Please switch to landscape mode to view the auditorium</p>
+  </div>
+</div>
 <!-- 🔐 Loader -->
 <div id="loader">
   <div class="spinner"></div>
@@ -145,7 +187,7 @@ html, body {
 
 <!-- 🎥 Video -->
 <div class="video-container">
-  <video id="videoPlayer" controls muted autoplay playsinline></video>
+  <video id="videoPlayer"  muted autoplay playsinline></video>
 </div>
 
 <!-- 📄 Modal (Google Form) -->
@@ -184,6 +226,25 @@ html, body {
 </div>
 
 <script>
+  function checkOrientation() {
+  const rotateScreen = document.getElementById("rotateScreen");
+
+  const isMobile = window.innerWidth < 900; // mobile/tablet check
+  const isPortrait = window.innerHeight > window.innerWidth;
+
+  if (isMobile && isPortrait) {
+    rotateScreen.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  } else {
+    rotateScreen.style.display = "none";
+    document.body.style.overflow = "hidden"; // keep hidden for video UX
+  }
+}
+
+// Run on load + resize
+window.addEventListener("load", checkOrientation);
+window.addEventListener("resize", checkOrientation);
+window.addEventListener("orientationchange", checkOrientation);
 function trackAuditoriumView() {
   fetch("https://adecon-backend-8y4v.onrender.com/api/user/activity", {
     method: "POST",
