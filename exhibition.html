@@ -5,15 +5,39 @@
 <title>Exhibition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-/>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: Arial, sans-serif; overflow: hidden; }
 
+/* 🔐 Loader */
+#authLoader {
+  position:fixed;
+  inset:0;
+  background:#0f172a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  color:white;
+}
+
+.spinner {
+  width:50px;
+  height:50px;
+  border:5px solid rgba(255,255,255,0.2);
+  border-top:5px solid #38bdf8;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Main */
 .container {
   position: relative;
   width: 100vw;
@@ -26,23 +50,41 @@ body { font-family: Arial, sans-serif; overflow: hidden; }
   object-fit: cover;
 }
 
-/* 🔴 Red Dot */
-.click-dot {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background: red;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 10;
-  box-shadow: 0 0 10px rgba(255,0,0,0.7);
+/* Modal */
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1) translate(-50%, -50%); }
-  50% { transform: scale(1.5) translate(-50%, -50%); }
-  100% { transform: scale(1) translate(-50%, -50%); }
+.modal-content {
+  width:85%;
+  height:85%;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+  position:relative;
+}
+
+.modal-content iframe {
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.close-btn {
+  position:absolute;
+  top:10px;
+  right:15px;
+  background:red;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  cursor:pointer;
 }
 
 /* Footer */
@@ -59,14 +101,15 @@ body { font-family: Arial, sans-serif; overflow: hidden; }
 
 .footer-toggle {
   position: absolute;
-  top: -25px;
-  left: 50%;
+  top: -32px;
+  left: 51%;
   transform: translateX(-50%);
   background: #2a4d7d;
   color: white;
-  padding: 5px 12px;
+  padding: 6px 16px;
   border-radius: 12px 12px 0 0;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .component-bar {
@@ -80,201 +123,169 @@ body { font-family: Arial, sans-serif; overflow: hidden; }
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  text-decoration: none;
   color: #333;
-  width: 200px;
 }
 
-.component-item:hover { color: #2a4d7d; }
-.component-item i { font-size: 28px; margin-bottom: 6px; }
-
-/* Popup */
-#questionPopup {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 320px;
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-  display: none;
-  z-index: 50;
-}
-
-#questionPopup textarea {
-  width: 100%;
-  height: 80px;
-  padding: 8px;
-  resize: none;
-}
-
-.popup-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.popup-buttons button {
-  width: 48%;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#sendQuery {
-  background: #2a4d7d;
-  color: white;
-}
-
-#cancelQuery {
-  background: #ccc;
-}
+.component-item i { font-size: 26px; margin-bottom: 5px; }
 </style>
 </head>
 
 <body>
 
+<!-- 🔐 Loader -->
+<div id="authLoader">
+  <div style="text-align:center;">
+    <div class="spinner"></div>
+    <p>Authenticating...</p>
+  </div>
+</div>
+
+<!-- 🌐 Main -->
 <div class="container">
   <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/2+stall+Design.png" usemap="#image-map">
+
   <map name="image-map">
-    <area href="stall.html" coords="10215,515,16452,6255" shape="rect">
+    <area href="stall1.html" coords="51,350,888,960" shape="rect">
+    <area href="stall2.html" coords="1017,350,1863,960" shape="rect">
   </map>
 </div>
 
-<!-- 💬 Popup -->
-<div id="questionPopup">
-  <textarea id="userQuery" placeholder="Ask your question..."></textarea>
-  <div class="popup-buttons">
-    <button id="sendQuery">Send</button>
-    <button id="cancelQuery">Cancel</button>
+<!-- 📄 Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">✖</button>
+    <iframe id="modalFrame"></iframe>
   </div>
 </div>
 
 <!-- Footer -->
 <div class="footer-bar collapsed" id="footerBar">
-  <div class="footer-toggle" id="footerToggle">▲</div>
+  <div class="footer-toggle" id="footerToggle">Menu ▲</div>
+
   <div class="component-bar">
-    <a href="#" class="component-item" title="Lobby">
+    <div class="component-item" id="goLobby">
       <i class="fa-solid fa-house"></i>Lobby
-    </a>
-    <a href="#" class="component-item" title="Auditorium">
+    </div>
+
+    <div class="component-item" id="goAud">
       <i class="fa-solid fa-person-chalkboard"></i>Auditorium
-    </a>
-    <a href="#" class="component-item" title="Exhibition">
+    </div>
+
+    <div class="component-item" id="goEx">
       <i class="fa-solid fa-landmark"></i>Exhibition
-    </a>
-    <a href="#" class="component-item" title="Ask a Question">
-      <i class="fa-regular fa-comment"></i>Ask a Question
-    </a>
-    <a href="#" class="component-item" title="Logout">
+    </div>
+
+    <div class="component-item" id="askBtn">
+      <i class="fa-regular fa-comment"></i>Ask
+    </div>
+
+    <div class="component-item" id="logout">
       <i class="fa-solid fa-arrow-right-from-bracket"></i>Logout
-    </a>
+    </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/image-map-resizer/1.0.10/js/imageMapResizer.min.js"></script>
 
 <script>
-// 🔐 Login check
-if (localStorage.getItem("_loginS") !== "_ltorguien") {
-  window.location.href = "login.html";
+
+/* 🔐 AUTH */
+async function checkAuth() {
+  try {
+    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.message === "User authenticated") {
+      document.getElementById("authLoader").style.display = "none";
+      return true;
+    } else {
+      window.location.href = "login.html";
+    }
+  } catch {
+    window.location.href = "login.html";
+  }
 }
 
-// 🔴 Restore red dot
-function addStaticDot() {
-  const container = document.querySelector(".container");
-  const dot = document.createElement("div");
-  dot.className = "click-dot";
-  dot.style.left = "775px";
-  dot.style.top = "150px";
-  container.appendChild(dot);
+/* 📄 Modal */
+function openModal(url) {
+  document.getElementById("modalFrame").src = url;
+  document.getElementById("modal").style.display = "flex";
 }
 
-// 🚀 On Load
-window.onload = function() {
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modalFrame").src = "";
+}
+
+/* 🧠 Prefilled Google Form */
+function buildPrefilledFormURL() {
+  const base = "https://docs.google.com/forms/d/e/1FAIpQLSfe6pbQgIeUB9IuiiJ-vq6xpTIcpMSxiOIyhk8MI-2H8RbjYw/viewform";
+
+  const params = new URLSearchParams({
+    "entry.543970567": localStorage.getItem("fullname") || "",
+    "entry.385469749": "",
+    "entry.57364819": localStorage.getItem("mobileno") || "",
+    "entry.880130637": localStorage.getItem("email") || "",
+    "entry.342698872": localStorage.getItem("city") || "",
+    "entry.745321921": localStorage.getItem("state") || "",
+    "entry.1903990537": localStorage.getItem("country") || ""
+  });
+
+  return `${base}?${params.toString()}`;
+}
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", async () => {
+  const ok = await checkAuth();
+  if (!ok) return;
+
   imageMapResize();
-  addStaticDot(); // ✅ red dot back
   setupFooter();
-};
+});
 
-// Footer + Popup + API
+/* Footer */
 function setupFooter() {
   const footer = document.getElementById('footerBar');
   const toggle = document.getElementById('footerToggle');
 
-  const askLink = document.querySelector('[title="Ask a Question"]');
-  const popup = document.getElementById('questionPopup');
-  const sendBtn = document.getElementById('sendQuery');
-  const cancelBtn = document.getElementById('cancelQuery');
-
-  toggle.addEventListener('click', () => {
+  toggle.onclick = () => {
     footer.classList.toggle('collapsed');
-    toggle.textContent = footer.classList.contains('collapsed') ? '▲' : '▼';
-  });
+    toggle.textContent = footer.classList.contains('collapsed') ? "Menu ▲" : "Menu ▼";
+  };
 
-  // Show popup
-  askLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    popup.style.display = 'block';
-  });
+  document.getElementById("askBtn").onclick = () => {
+    const url = buildPrefilledFormURL();
+    openModal(url);
+  };
 
-  // Cancel
-  cancelBtn.addEventListener('click', () => {
-    popup.style.display = 'none';
-    document.getElementById('userQuery').value = '';
-  });
+  document.getElementById("goLobby").onclick = () => location.href = "home.html";
+  document.getElementById("goAud").onclick = () => location.href = "auditorium_live.html";
+  document.getElementById("goEx").onclick = () => location.href = "exhibition.html";
 
-sendBtn.addEventListener('click', () => {
-  const queryInput = document.getElementById('userQuery');
-  const query = queryInput.value;
+document.getElementById("logout").onclick = async () => {
+  try {
+    await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+    
+  localStorage.clear();
 
-  if (!query.trim()) {
-    alert("Please enter a question");
-    return;
+  window.location.href = "login.html";
+  } catch (err) {
   }
 
-  // 🚫 Prevent multiple clicks
-  sendBtn.disabled = true;
-  const originalText = sendBtn.textContent;
-  sendBtn.textContent = "Sending...";
+};
+}
 
-  fetch("https://adecon-backend.onrender.com/api/query/add", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      user: localStorage.getItem('userEmail'),
-      query: query
-    })
-  })
-  .then(res => res.json())
-  .then(() => {
-    alert("Question sent successfully!");
-    popup.style.display = 'none';
-    queryInput.value = '';
-  })
-  .catch(() => {
-    alert("Error sending question");
-  })
-  .finally(() => {
-    // 🔄 Restore button
-    sendBtn.disabled = false;
-    sendBtn.textContent = originalText;
-  });
+/* ESC close */
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
 });
 
-  // Navigation
-  document.querySelector('[title="Lobby"]').onclick = () => window.location.href = 'home.html';
-  document.querySelector('[title="Auditorium"]').onclick = () => window.location.href = 'auditorium_live.html';
-  document.querySelector('[title="Exhibition"]').onclick = () => window.location.href = 'exhibition.html';
-  document.querySelector('[title="Logout"]').onclick = () => {
-    localStorage.removeItem('_loginS');
-    window.location.href = 'login.html';
-  };
-}
 </script>
 
 </body>
