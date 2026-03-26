@@ -16,42 +16,45 @@
 }
 
 body {
+    margin: 0;
+    padding: 0;
     height: 100vh;
+    width: 100vw;
     display: flex;
+    overflow: hidden; /* Prevents unwanted scrollbars */
     background: #f4f7fb;
 }
 
-/* HERO */
 .hero {
-    width: 70%;
-    height: 100vh;
-    overflow: hidden;   /* 🔥 crops extra image */
+    height: 100vh; /* Force height to match viewport */
+    flex: 0 0 auto; 
+    display: flex;
+    align-items: center; /* Vertical alignment */
+    justify-content: center; /* Horizontal alignment */
 }
 
 .hero img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center -10px; /* 🔥 shift image down by 10px */
+    height: 100%; /* Image fills full height of the container */
+    width: auto;
+    display: block; /* Removes any potential vertical whitespace caused by inline display */
+    object-fit: cover; /* Ensures no white space inside the image container */
 }
 
-/* LOGIN */
 .login-container {
-    width: 30%;
+    flex: 1; /* Fills the rest of the screen */
     display: flex;
     justify-content: center;
     align-items: center;
+    background: #f4f7fb; /* Light grey background for the form side */
 }
 
 .login-box {
-    width: 300px;
-    padding: 30px 20px;
+    width: 320px;
+    padding: 40px 30px;
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 15px 40px rgba(0,0,0,0.1);
     text-align: center;
-    display: flex;
-    flex-direction: column;
 }
 
 /* INPUT */
@@ -115,19 +118,20 @@ button {
 
 /* MOBILE */
 @media (max-width: 900px) {
-    body { flex-direction: column; }
-
+    body { 
+        flex-direction: column; 
+        overflow: auto; 
+    }
     .hero {
         width: 100%;
-        height: 200px;
+        height: auto;
     }
-
     .hero img {
-        height: 100%;
-    }
-
-    .login-container {
         width: 100%;
+        height: auto;
+    }
+    .login-container {
+        padding: 40px 20px;
     }
 }
 </style>
@@ -136,7 +140,7 @@ button {
 <body>
 
 <div class="hero">
-    <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Login+Page+Adecon+Banner%402x.png">
+    <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Login+Page+Adecon+Banner%402x.png" alt="Adecon Banner">
 </div>
 
 <div class="login-container">
@@ -158,6 +162,13 @@ button {
 </div>
 
 <script>
+// Grab elements globally for simplicity
+const email = document.getElementById('email');
+const errorMsg = document.getElementById('errorMsg');
+const loginBtn = document.getElementById('loginBtn');
+const btnText = document.getElementById('btnText');
+const btnLoader = document.getElementById('btnLoader');
+
 // Auto redirect if logged in
 window.onload = async () => {
     try {
@@ -186,6 +197,7 @@ async function login() {
         return;
     }
 
+    errorMsg.style.display = 'none'; // Clear previous errors
     toggleLoading(true);
 
     try {
