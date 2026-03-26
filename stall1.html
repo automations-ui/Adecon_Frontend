@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stall 1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { overflow:hidden; font-family: Arial; }
+
+/* Loader */
+#authLoader {
+  position:fixed; inset:0;
+  background:#0f172a;
+  display:flex; justify-content:center; align-items:center;
+  color:#fff; z-index:9999;
+}
+
+.spinner {
+  width:50px; height:50px;
+  border:5px solid rgba(255,255,255,0.2);
+  border-top:5px solid #38bdf8;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Image */
+.container img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+
+  /* 👇 THIS IS THE KEY */
+  object-position: center 80%; 
+}
+
+/* Modal */
+.modal {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none; justify-content:center; align-items:center;
+  z-index:1000;
+}
+.modal-content {
+  width:85%; height:85%;
+  background:#fff; border-radius:10px;
+  overflow:hidden; position:relative;
+}
+.modal iframe { width:100%; height:100%; border:none; }
+.close-btn {
+  position:absolute; top:10px; right:15px;
+  background:red; color:#fff; border:none;
+  padding:6px 12px; cursor:pointer;
+}
+
+/* Footer */
+.footer-bar {
+  position:fixed; bottom:0; width:100%;
+  background:#fff; border-top:1px solid #ddd;
+  transform:translateY(90%);
+  transition:0.3s;
+}
+.footer-bar.active { transform:translateY(0); }
+
+.footer-toggle {
+  position:absolute; top:-31px; left:51%;
+  transform:translateX(-51%);
+  background:#2a4d7d; color:#fff;
+  padding:6px 16px; border-radius:12px 12px 0 0;
+  cursor:pointer;
+}
+
+.component-bar {
+  display:flex; justify-content:space-around; padding:10px;
+}
+.component-item { text-align:center; cursor:pointer; }
+.component-item i { font-size:24px; }
+</style>
+</head>
+
+<body>
+
+<div id="authLoader">
+  <div>
+    <div class="spinner"></div>
+    <p>Authenticating...</p>
+  </div>
+</div>
+
+<div class="container">
+  <img src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/USV+pharma+stall.png">
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">✖</button>
+    <iframe id="frame"></iframe>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-bar" id="footer">
+  <div class="footer-toggle" id="toggle">Menu ▲</div>
+
+  <div class="component-bar">
+    <div class="component-item" onclick="go('home.html')"><i class="fa fa-house"></i><br>Lobby</div>
+    <div class="component-item" onclick="go('auditorium_live.html')"><i class="fa fa-person-chalkboard"></i><br>Auditorium</div>
+    <div class="component-item" onclick="go('exhibition.html')"><i class="fa fa-landmark"></i><br>Exhibition</div>
+    <div class="component-item" onclick="openAsk()"><i class="fa fa-comment"></i><br>Ask</div>
+    <div class="component-item" onclick="logout()"><i class="fa fa-right-from-bracket"></i><br>Logout</div>
+  </div>
+</div>
+
+<script>
+
+/* AUTH */
+async function checkAuth(){
+  try{
+    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status",{credentials:"include"});
+    const d = await res.json();
+    if(d.message==="User authenticated"){
+      document.getElementById("authLoader").style.display="none";
+    } else location.href="login.html";
+  }catch{ location.href="login.html"; }
+}
+
+/* Modal */
+function openModal(url){
+  document.getElementById("frame").src=url;
+  document.getElementById("modal").style.display="flex";
+}
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+/* Prefill Form */
+function getFormURL(){
+  const base="https://docs.google.com/forms/d/e/1FAIpQLSfe6pbQgIeUB9IuiiJ-vq6xpTIcpMSxiOIyhk8MI-2H8RbjYw/viewform";
+  const p=new URLSearchParams({
+    "entry.543970567":localStorage.getItem("fullname")||"",
+    "entry.57364819":localStorage.getItem("mobileno")||"",
+    "entry.880130637":localStorage.getItem("email")||"",
+    "entry.342698872":localStorage.getItem("city")||"",
+    "entry.745321921":localStorage.getItem("state")||"",
+    "entry.1903990537":localStorage.getItem("country")||""
+  });
+  return base+"?"+p.toString();
+}
+
+function openAsk(){ openModal(getFormURL()); }
+
+/* Footer */
+const f=document.getElementById("footer");
+const t=document.getElementById("toggle");
+t.onclick=()=>{
+  f.classList.toggle("active");
+  t.textContent = f.classList.contains("active") ? "Menu ▼" : "Menu ▲";
+};
+
+function go(p){ location.href=p; }
+
+/* Logout */
+async function logout(){
+  try{
+    await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout",{
+      method:"POST", credentials:"include"
+    });
+  }catch{}
+  localStorage.clear();
+  location.href="login.html";
+}
+
+/* Init */
+checkAuth();
+
+</script>
+</body>
+</html>
