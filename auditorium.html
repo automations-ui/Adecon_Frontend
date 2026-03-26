@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Auditorium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family: Arial, sans-serif;
+  background:black;
+}
+
+/* 🔐 Loader */
+#loader {
+  position:fixed;
+  inset:0;
+  background:#0f172a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.spinner {
+  width:50px;
+  height:50px;
+  border:5px solid rgba(255,255,255,0.2);
+  border-top:5px solid #38bdf8;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 🎥 FULLSCREEN VIDEO */
+.video-container {
+  width:100vw;
+  height:100vh;
+  position:relative;
+}
+
+#videoPlayer {
+  width:100%;
+  height:100%;
+  object-fit: cover; /* 🔥 fills full screen */
+  background:black;
+}
+
+/* 📄 Modal */
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
+.modal-content {
+  width:85%;
+  height:85%;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+  position:relative;
+}
+
+.modal-content iframe {
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.close-btn {
+  position:absolute;
+  top:10px;
+  right:15px;
+  background:red;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  cursor:pointer;
+}
+
+/* Footer */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  border-top: 1px solid #ddd;
+  z-index: 10;
+  transition: transform 0.3s ease-in-out;
+}
+.footer-bar.collapsed { transform: translateY(90%); }
+
+.footer-toggle {
+  position: absolute;
+  top: -31px;
+  left: 51%;
+  transform: translateX(-51%);
+  background: #2a4d7d;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+}
+
+.component-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+}
+
+.component-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  color: #333;
+}
+.component-item i { font-size: 26px; margin-bottom: 5px; }
+</style>
+</head>
+
+<body>
+
+<!-- 🔐 Loader -->
+<div id="loader">
+  <div class="spinner"></div>
+</div>
+
+<!-- 🎥 Video -->
+<div class="video-container">
+  <video id="videoPlayer" controls muted autoplay playsinline></video>
+</div>
+
+<!-- 📄 Modal (Google Form) -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">✖</button>
+    <iframe id="modalFrame"></iframe>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-bar collapsed" id="footerBar">
+  <div class="footer-toggle" id="footerToggle">Menu ▲</div>
+
+  <div class="component-bar">
+    <div class="component-item" id="goLobby">
+      <i class="fa-solid fa-house"></i>Lobby
+    </div>
+
+    <div class="component-item" id="goAud">
+      <i class="fa-solid fa-person-chalkboard"></i>Auditorium
+    </div>
+
+    <div class="component-item" id="goEx">
+      <i class="fa-solid fa-landmark"></i>Exhibition
+    </div>
+
+    <div class="component-item" id="askBtn">
+      <i class="fa-regular fa-comment"></i>Ask
+    </div>
+
+    <div class="component-item" id="logout">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>Logout
+    </div>
+  </div>
+</div>
+
+<script>
+function trackAuditoriumView() {
+  fetch("https://adecon-backend-8y4v.onrender.com/api/user/activity", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      viewTime: true
+    }),
+credentials:"include"
+  }).catch(() => {});
+}
+/* 🔐 AUTH */
+async function checkAuth() {
+  try {
+    const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.message === "User authenticated") {
+      document.getElementById("loader").style.display = "none";
+      return true;
+    } else {
+      window.location.href = "login.html";
+    }
+  } catch {
+    window.location.href = "login.html";
+  }
+}
+
+/* 🎥 VIDEO SETUP */
+function setupVideo() {
+  const video = document.getElementById('videoPlayer');
+  const src = "https://stream.mux.com/6uwusJNZiVwtBChnLfrmOnUzXEft4AjBT5GumyCu8U8.m3u8";
+
+  if (Hls.isSupported()) {
+    const hls = new Hls({
+      liveSyncDurationCount: 1,
+      liveMaxLatencyDurationCount: 2,
+      maxBufferLength: 5,
+      backBufferLength: 0
+    });
+
+    hls.loadSource(src);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+    });
+  } else {
+    video.src = src;
+    video.play();
+  }
+
+  // pause when tab inactive
+  document.addEventListener("visibilitychange", () => {
+    document.hidden ? video.pause() : video.play();
+  });
+}
+
+/* 📄 Modal */
+function openModal(url) {
+  document.getElementById("modalFrame").src = url;
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modalFrame").src = "";
+}
+
+/* 🧠 Google Form Prefill */
+function buildPrefilledFormURL() {
+  const base = "https://docs.google.com/forms/d/e/1FAIpQLSfe6pbQgIeUB9IuiiJ-vq6xpTIcpMSxiOIyhk8MI-2H8RbjYw/viewform";
+
+  const params = new URLSearchParams({
+    "entry.543970567": localStorage.getItem("fullname") || "",
+    "entry.385469749": "",
+    "entry.57364819": localStorage.getItem("mobileno") || "",
+    "entry.880130637": localStorage.getItem("email") || "",
+    "entry.342698872": localStorage.getItem("city") || "",
+    "entry.745321921": localStorage.getItem("state") || "",
+    "entry.1903990537": localStorage.getItem("country") || ""
+  });
+
+  return `${base}?${params.toString()}`;
+}
+
+/* Footer */
+function setupFooter() {
+  const footer = document.getElementById("footerBar");
+  const toggle = document.getElementById("footerToggle");
+
+  toggle.onclick = () => {
+    footer.classList.toggle("collapsed");
+    toggle.textContent = footer.classList.contains("collapsed") ? "Menu ▲" : "Menu ▼";
+  };
+
+  document.getElementById("askBtn").onclick = () => {
+    openModal(buildPrefilledFormURL());
+  };
+
+  document.getElementById("goLobby").onclick = () => location.href = "home.html";
+  document.getElementById("goAud").onclick = () => location.href = "auditorium.html";
+  document.getElementById("goEx").onclick = () => location.href = "exhibition.html";
+
+  document.getElementById("logout").onclick = async () => {
+    try {
+      await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch {}
+    localStorage.clear();
+    location.href = "login.html";
+  };
+}
+
+/* INIT */
+document.addEventListener("DOMContentLoaded", async () => {
+  const ok = await checkAuth();
+  if (!ok) return;
+trackAuditoriumView()
+  setupFooter();
+  setupVideo();
+});
+
+/* ESC close */
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+
+</script>
+
+</body>
+</html>
