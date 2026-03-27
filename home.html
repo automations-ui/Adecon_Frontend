@@ -193,18 +193,17 @@ const ORIG_H = 1080;
 
 /* ── Auth Check ────────────────────────────────────────────────────────── */
 async function checkAuth() {
-    try {
-        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", { credentials: "include" });
-        const data = await res.json();
-        if (data.message === "User authenticated") {
+    if(localStorage.getItem("email")) {
             document.getElementById("authLoader").style.display = "none";
             return true;
-        }
-    } catch (e) { console.error("Auth error", e); }
-    window.location.href = "login.html";
+}
+else{
+  window.location.replace("login.html");
     return false;
 }
 
+           
+        }
 /* ── Hotspot Syncing ───────────────────────────────────────────────────── */
 function syncUI() {
     const img = document.getElementById("lobby-image");

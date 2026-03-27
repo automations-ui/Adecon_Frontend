@@ -172,17 +172,14 @@ const ORIG_H = 1080;
 
 /* 🔐 Auth & Tracking */
 async function checkAuth(){
-    try {
-        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status",{ credentials:"include" });
-        const d = await res.json();
-        if(d.message==="User authenticated"){
+    if(localStorage.getItem("email")) {
             document.getElementById("authLoader").style.display="none";
             trackVisit("Sun Pharma");
             return true;
         }
-    } catch(e) {}
+else{
     location.href="login.html";
-    return false;
+}
 }
 
 function trackVisit(stallName) {
@@ -190,7 +187,7 @@ function trackVisit(stallName) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ stall: stallName })
+        body: JSON.stringify({ email:localStorage.getItem('email'),stall: stallName })
     }).catch(() => {});
 }
 
@@ -251,9 +248,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function logout(){
-    try {
-        await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout",{ method:"POST", credentials:"include" });
-    } catch(e) {}
+ 
     localStorage.clear();
     location.href="login.html";
 }

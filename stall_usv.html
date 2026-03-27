@@ -151,16 +151,14 @@ html, body {
 <script>
 /* 🔐 Auth & Tracking */
 async function checkAuth(){
-    try {
-        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status",{ credentials:"include" });
-        const d = await res.json();
-        if(d.message==="User authenticated"){
+    if(localStorage.getItem("email")) {
             document.getElementById("authLoader").style.display="none";
             trackVisit("USV");
             return true;
         }
-    } catch(e) {}
+else{
     location.href="login.html";
+}
 }
 
 function trackVisit(name) {
@@ -168,7 +166,7 @@ function trackVisit(name) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ stall: name })
+        body: JSON.stringify({ email:localStorage.getItem('email'),stall: name })
     }).catch(() => {});
 }
 
@@ -213,7 +211,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function logout(){
-    try { await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout",{ method:"POST", credentials:"include" }); } catch(e) {}
     localStorage.clear();
     location.href="login.html";
 }

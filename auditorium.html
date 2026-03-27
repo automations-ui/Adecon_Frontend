@@ -212,23 +212,21 @@ function trackAuditoriumView() {
     fetch("https://adecon-backend-8y4v.onrender.com/api/user/activity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ viewTime: true }),
+        body: JSON.stringify({ email:localStorage.getItem('email'),viewTime: true }),
         credentials: "include"
     }).catch(() => {});
 }
 
 /* 🔐 Auth Status */
 async function checkAuth() {
-    try {
-        const res = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", { credentials: "include" });
-        const data = await res.json();
-        if (data.message === "User authenticated") {
+   if(localStorage.getItem("email")) {
             document.getElementById("loader").style.display = "none";
             return true;
-        }
-    } catch (e) {}
-    window.location.href = "login.html";
+}
+else{
+    window.location.replace = "login.html";
     return false;
+}
 }
 
 /* 🎥 Video Engine */
@@ -294,9 +292,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("goEx").onclick = () => location.href = "exhibition.html";
 
     document.getElementById("logout").onclick = async () => {
-        try {
-            await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/logout", { method: "POST", credentials: "include" });
-        } catch {}
+ 
         localStorage.clear();
         window.location.href = "login.html";
     };

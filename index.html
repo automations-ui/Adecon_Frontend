@@ -39,23 +39,11 @@
   <script>
 window.onload = async function () {
 
-    try {
-       const response = await fetch("https://adecon-backend-8y4v.onrender.com/api/auth/status", {
-                    method: "GET",
-                    credentials: "include"
-                });
-
-        const data = await response.json();
-
-        if (data.message === "User authenticated") {
+    if(localStorage.getItem("email")) {
             window.location.href = "home.html";
         } else {
             window.location.href = "login.html";
         }
-
-    } catch (error) {
-        window.location.href = "login.html";
-    }
 };
 </script>
 </head>
