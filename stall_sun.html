@@ -120,11 +120,34 @@ html, body {
 }
 .component-item { text-align: center; cursor: pointer; flex: 1; color: #444; font-size: 11px; }
 .component-item i { font-size: 22px; margin-bottom: 4px; color: #2a4d7d; }
+.back-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 9999;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-btn i {
+    font-size: 14px;
+}
 </style>
 </head>
 
 <body>
-
+<button class="back-btn" onclick="goBack()">
+    <i class="fa fa-arrow-left"></i> Back
+</button>
 <div id="authLoader">
     <div style="text-align:center;">
         <div class="spinner"></div>
@@ -181,7 +204,9 @@ else{
     location.href="login.html";
 }
 }
-
+function goBack(){
+    window.location.href = "exhibition.html";
+}
 function trackVisit(stallName) {
     fetch("https://adecon-backend-8y4v.onrender.com/api/user/activity", {
         method: "POST",
