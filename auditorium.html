@@ -171,7 +171,55 @@ html, body {
 }
 
 .component-item i { font-size: 22px; margin-bottom: 4px; color: #2a4d7d; }
+/* 🎮 Overlay Buttons */
+.overlay-btn {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
 
+/* ▶ Center Play Button */
+#playOverlay {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#playOverlay i {
+    font-size: 32px;
+    color: white;
+}
+
+/* ⏸ Subtle Pause Button */
+#pauseOverlay {
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+}
+
+#pauseOverlay i {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Hidden state */
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -192,10 +240,18 @@ html, body {
 </div>
 
 <div class="video-container" id="mainLayout">
+ 
+<div id="playOverlay" class="overlay-btn">
+    <i class="fa-solid fa-play"></i>
+</div>
+
+<div id="pauseOverlay" class="overlay-btn small hidden">
+    <i class="fa-solid fa-pause"></i>
+</div>
     <img id="fallbackImage"
      src="https://s3.ap-south-1.amazonaws.com/cdn2.onference.in/testepisodethumbnail/Auditorium+with+banner_1.png"
      style="display:none;" />
-    <video id="videoPlayer" muted autoplay playsinline controlsList="nodownload"></video>
+    <video id="videoPlayer" playsinline></video>
 </div>
 
 <div class="modal" id="modal">
@@ -289,7 +345,14 @@ else{
 /* 🎥 Video Engine */
 function setupVideo() {
     const video = document.getElementById('videoPlayer');
+    const playBtn = document.getElementById('playOverlay');
+    const pauseBtn = document.getElementById('pauseOverlay');
+
     const src = "https://stream.mux.com/6uwusJNZiVwtBChnLfrmOnUzXEft4AjBT5GumyCu8U8.m3u8";
+
+    video.muted = false;   // 🔊 unmuted
+    video.autoplay = false;
+    video.controls = false;
 
     if (Hls.isSupported()) {
         const hls = new Hls({
@@ -298,17 +361,38 @@ function setupVideo() {
         });
         hls.loadSource(src);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {
-            // Handle autoplay block: show a play button if needed or keep muted
-            console.log("Autoplay requires interaction");
-        }));
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = src;
     }
-    
-    // Auto-pause to save data/bandwidth when tab is hidden
+
+    /* ▶ Play click */
+    playBtn.onclick = () => {
+        video.play();
+        playBtn.classList.add("hidden");
+        pauseBtn.classList.remove("hidden");
+    };
+
+    /* ⏸ Pause click */
+    pauseBtn.onclick = () => {
+        video.pause();
+        pauseBtn.classList.add("hidden");
+        playBtn.classList.remove("hidden");
+    };
+
+    /* Sync UI with state */
+    video.addEventListener("play", () => {
+        playBtn.classList.add("hidden");
+        pauseBtn.classList.remove("hidden");
+    });
+
+    video.addEventListener("pause", () => {
+        pauseBtn.classList.add("hidden");
+        playBtn.classList.remove("hidden");
+    });
+
+    /* Auto pause when tab hidden */
     document.addEventListener("visibilitychange", () => {
-        if (document.hidden) video.pause(); else video.play();
+        if (document.hidden) video.pause();
     });
 }
 
